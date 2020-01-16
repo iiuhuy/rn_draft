@@ -5,13 +5,17 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "connect": "adb reverse tcp:8081 tcp:8081",
     "start": "react-native start",
+    "adb": "adb devices",
+    "release": "react-native run-android --variant=release",
     "test": "jest",
     "lint": "eslint ."
   },
   "dependencies": {
     "react": "16.9.0",
-    "react-native": "0.61.2"
+    "react-native": "0.61.2",
+    "regl": "^1.3.13"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

@@ -1,114 +1,61 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
+// Calling the regl module with no arguments creates a full screen canvas and
+// WebGL context, and then uses this context to initialize a new REGL instance
+const regl = require('regl')()
 
-import React from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-} from 'react-native';
+// Calling regl() creates a new partially evaluated draw command
+const drawTriangle = regl({
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  // Shaders in regl are just strings.  You can use glslify or whatever you want
+  // to define them.  No need to manually create shader objects.
+  frag: `
+    precision mediump float;
+    uniform vec4 color;
+    void main() {
+      gl_FragColor = color;
+    }`,
 
-const App: () => React$Node = () => {
-  return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          {global.HermesInternal == null ? null : (
-            <View style={styles.engine}>
-              <Text style={styles.footer}>Engine: Hermes</Text>
-            </View>
-          )}
-          <View style={styles.body}>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Step One</Text>
-              <Text style={styles.sectionDescription}>
-                Edit <Text style={styles.highlight}>App.js</Text> to change this
-                screen and then come back to see your edits.
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>See Your Changes</Text>
-              <Text style={styles.sectionDescription}>
-                <ReloadInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Debug</Text>
-              <Text style={styles.sectionDescription}>
-                <DebugInstructions />
-              </Text>
-            </View>
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Learn More</Text>
-              <Text style={styles.sectionDescription}>
-                Read the docs to discover what to do next:
-              </Text>
-            </View>
-            <LearnMoreLinks />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </>
-  );
-};
+  vert: `
+    precision mediump float;
+    attribute vec2 position;
+    void main() {
+      gl_Position = vec4(position, 0, 1);
+    }`,
 
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  // Here we define the vertex attributes for the above shader
+  attributes: {
+    // regl.buffer creates a new array buffer object
+    position: regl.buffer([
+      [-2, -2],   // no need to flatten nested arrays, regl automatically
+      [4, -2],    // unrolls them into a typedarray (default Float32)
+      [4,  4]
+    ])
+    // regl automatically infers sane defaults for the vertex attribute pointers
   },
-  engine: {
-    position: 'absolute',
-    right: 0,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  footer: {
-    color: Colors.dark,
-    fontSize: 12,
-    fontWeight: '600',
-    padding: 4,
-    paddingRight: 12,
-    textAlign: 'right',
-  },
-});
 
-export default App;
+  uniforms: {
+    // This defines the color of the triangle to be a dynamic variable
+    color: regl.prop('color')
+  },
+
+  // This tells regl the number of vertices to draw in this command
+  count: 3
+})
+
+// regl.frame() wraps requestAnimationFrame and also handles viewport changes
+regl.frame(({time}) => {
+  // clear contents of the drawing buffer
+  regl.clear({
+    color: [0, 0, 0, 0],
+    depth: 1
+  })
+
+  // draw a triangle using the command defined above
+  drawTriangle({
+    color: [
+      Math.cos(time * 0.001),
+      Math.sin(time * 0.0008),
+      Math.cos(time * 0.003),
+      1
+    ]
+  })
+})
