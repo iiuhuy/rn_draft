@@ -9,6 +9,7 @@
     "start": "react-native start",
     "adb": "adb devices",
     "release": "react-native run-android --variant=release",
+    "dev": "react-native run-android --no-jetifier",
     "test": "jest",
     "lint": "eslint ."
   },
